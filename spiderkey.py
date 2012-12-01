@@ -17,8 +17,13 @@ class SpiderKey(SpiderSingle):
         self.stackpointer = 0
         self.cardpointer = 0
         self.stackpicker = 0
+        curses.init_pair(1,curses.COLOR_WHITE, curses.COLOR_BLACK)
+        curses.init_pair(2,curses.COLOR_BLACK, curses.COLOR_WHITE)
+        self.colormap = {'h':curses.color_pair(2),
+                         'n':curses.color_pair(1)}
 
     def movestack(self, i):
+        """ move pointer or picker over depending on the mode """
         if i == _RIGHT and self.mode == _CHOOSEPILE and self.stackpointer < len(self.board) - 1:
             self.stackpointer += 1
             self.cardpointer = 0
@@ -31,7 +36,7 @@ class SpiderKey(SpiderSingle):
             self.stackpicker += -1
                 
     def movecard(self, i):
-        # TODO: stop it from going up farther than visible
+        """ moves the card poitner up or down depending on the mode """
         if i == _UP and self.mode == _CHOOSEPILE and self.cardpointer < len(self.board[self.stackpointer])-1:
             card_index = len(self.board[self.stackpointer])-1-self.cardpointer
             if self.board[self.stackpointer][card_index-1][2]:
@@ -40,6 +45,8 @@ class SpiderKey(SpiderSingle):
             self.cardpointer += -1
 
     def switchmode(self):
+        """ switches from mode to mode, if switching from pickign where to move
+            cards to, automatically moves thigns over if it is possible """
         if self.mode == _CHOOSEPILE:
             self.stackpicker = self.stackpointer
             self.mode = _PICKMOVE
@@ -53,16 +60,39 @@ class SpiderKey(SpiderSingle):
             self.cardpointer = 0
 
 
-    def print_to_screen(self, screen, h, n):
+    def keypress(self, c):
+        """ deals with keypresses, moves back to menu upon a q """
+        if c == ord('d'):
+            self.deal()
+        elif c == 259:
+            self.movecard(_UP)
+        elif c == 258:
+            self.movecard(_DOWN)
+        elif c == 260:
+            self.movestack(_LEFT)
+        elif c == 261:
+            self.movestack(_RIGHT)
+        elif c == ord('\n'):
+            self.switchmode()
+        elif c == ord('r'):
+            self.reset()
+        elif c == ord('q'):
+            return None
+        return self
+            
+    def print_to_screen(self, screen):
+        """ prints itself to the screen given it from curses """
         D = {'10':'10', '11':' J', '12':' Q', '13':' K', '1':' A'}
-        screen.addstr(2,2,"There are " + str(len(self.piles)) + " piles to deal.", n)
-        screen.addstr(3,2,"You have completed " + str(self.complete_suits) + " suits.", n)
-        screen.addstr(4,2,"You have made " + str(self.moves) + " moves.", n)
-        screen.addstr(5,2," ", n)
+        h = "q - return to menu, d - deal, enter - switch from modes {select, move}, arrows - change selection"
+        screen.addstr(1,2,h)
+        screen.addstr(2,2,"There are " + str(len(self.piles)) + " piles to deal.")
+        screen.addstr(3,2,"You have completed " + str(self.complete_suits) + " suits.")
+        screen.addstr(4,2,"You have made " + str(self.moves) + " moves.")
+        screen.addstr(5,2," ")
         rs = ""
         for i in xrange(10):
             rs += " " + str(i) + "  "
-        screen.addstr(6,2,rs, n)
+        screen.addstr(6,2,rs)
         n = 7
         spacer = 4
         card_index = len(self.board[self.stackpointer])-1-self.cardpointer
@@ -77,13 +107,13 @@ class SpiderKey(SpiderSingle):
                         tt = str(self.board[j][i][0])
                         if tt in D.keys():
                             if j == self.stackpointer and i >= card_index:
-                                screen.addstr(n, 2+spacer*j, D[tt] + self.board[j][i][1] + " ", h)
+                                screen.addstr(n, 2+spacer*j, D[tt] + self.board[j][i][1] + " ", self.colormap['h'])
                             else:
                                 screen.addstr(n, 2+spacer*j, D[tt] + self.board[j][i][1] + " ")
                             rt += D[tt] + self.board[j][i][1] + " "
                         else:
                             if j == self.stackpointer and i >= card_index:
-                                screen.addstr(n, 2+spacer*j, " " + tt + self.board[j][i][1] + " ", h)
+                                screen.addstr(n, 2+spacer*j, " " + tt + self.board[j][i][1] + " ", self.colormap['h'])
                             else:
                                 screen.addstr(n, 2+spacer*j, " " + tt + self.board[j][i][1] + " ")
                             rt += " " + tt + self.board[j][i][1] + " "
@@ -94,13 +124,9 @@ class SpiderKey(SpiderSingle):
                 break
         if self.mode == _PICKMOVE:
             screen.addstr(n, 2+spacer*self.stackpicker, " ^  ")
+        else:
+            screen.addstr(n, 2+spacer*self.stackpointer, " ^  ")
         n += 1
-
-        screen.addstr(n, 2, "stackpointer: " + str(s.stackpointer))
-        screen.addstr(n+1, 2, "cardpointer: " + str(s.cardpointer))
-        screen.addstr(n+2, 2, "stackpicker: " + str(s.stackpicker))
-        screen.addstr(n+3,1," ")
-        #screen.addstr(self.__repr__())
         
     def __repr__(self):
         D = {'10':'10', '11':' J', '12':' Q', '13':' K'}
@@ -134,43 +160,3 @@ class SpiderKey(SpiderSingle):
 
         return rs
                                                             
-
-if __name__ == '__main__':
-    screen = curses.initscr()
-    curses.noecho()
-    curses.cbreak()
-    curses.start_color()
-    curses.init_pair(1,curses.COLOR_BLACK, curses.COLOR_WHITE)
-    screen.keypad(1)
-    pos = 1
-    x = None
-    h = curses.color_pair(1)
-    n = curses.A_NORMAL
-    s = SpiderKey()
-    while x != ord('q'):
-        screen.clear()
-        screen.border(0)
-        s.print_to_screen(screen, h, n)
-        if x:
-            screen.addstr(str(x))
-        screen.refresh()
-        x = screen.getch()
-        if x == ord('d'):
-            s.deal()
-        elif x == 259:
-            s.movecard(_UP)
-        elif x == 258:
-            s.movecard(_DOWN)
-        elif x == 260:
-            s.movestack(_LEFT)
-        elif x == 261:
-            s.movestack(_RIGHT)
-        elif x == ord('\n'):
-            s.switchmode()
-        elif x == ord('r'):
-            s.reset()
-    curses.nocbreak()
-    screen.keypad(0)
-    curses.echo()
-    curses.endwin()
-
