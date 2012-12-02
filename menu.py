@@ -1,6 +1,5 @@
 import curses
-from spiderkey2 import SpiderKey as DoubleSuit
-from spiderkey import SpiderKey as SingleSuit
+from spiderkeygen import SpiderKeyGen
 
 class Menu():
 
@@ -15,8 +14,10 @@ class Menu():
 
     def initEntries(self):
         """ puts initial entries in list """
-        self.addEntry("Spider Solitaire - Single Suit", SingleSuit())
-        self.addEntry("Spider Solitaire - Double Suit", DoubleSuit())
+        self.addEntry("Spider Solitaire - Single Suit", SpiderKeyGen(1))
+        self.addEntry("Spider Solitaire - Double Suit", SpiderKeyGen(2))
+        self.addEntry("Spider Solitaire - Quadruple Suit", SpiderKeyGen(4))
+
         
     def upPointer(self):
         """ moves the pointer up an entry if possible """
