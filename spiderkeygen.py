@@ -137,6 +137,8 @@ class SpiderKeyGen(SpiderGen):
                 break
         if self.mode == _PICKMOVE:
             screen.addstr(n, 2+spacer*self.stackpicker, " ^  ")
+        if self.mode == _CHOOSEPILE:
+            screen.addstr(n, 2+spacer*self.stackpointer, " ^  ")
         n += 1
         
     def __repr__(self):

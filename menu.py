@@ -1,5 +1,6 @@
 import curses
 from spiderkeygen import SpiderKeyGen
+from minesweeperkey import MineBoardKey as mswp
 
 class Menu():
 
@@ -17,6 +18,7 @@ class Menu():
         self.addEntry("Spider Solitaire - Single Suit", SpiderKeyGen(1))
         self.addEntry("Spider Solitaire - Double Suit", SpiderKeyGen(2))
         self.addEntry("Spider Solitaire - Quadruple Suit", SpiderKeyGen(4))
+        self.addEntry("Minesweeper 30 10 10", mswp(30, 10, 10))
 
         
     def upPointer(self):
