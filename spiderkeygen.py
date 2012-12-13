@@ -66,9 +66,10 @@ class SpiderKeyGen(SpiderGen):
             self.mode = _PICKMOVE
         elif self.mode == _PICKMOVE:
             # check for valid move and make if so
-            cnum = self.board[self.stackpointer][len(self.board[self.stackpointer]) - self.cardpointer - 1][0]
-            if self.validMove(self.stackpicker, self.stackpointer, cnum):
-                self.move(self.stackpicker, self.stackpointer, cnum)
+            if len(self.board[self.stackpointer]) > 0:
+                cnum = self.board[self.stackpointer][len(self.board[self.stackpointer]) - self.cardpointer - 1][0]
+                if self.validMove(self.stackpicker, self.stackpointer, cnum):
+                    self.move(self.stackpicker, self.stackpointer, cnum)
             self.stackpointer = self.stackpicker
             self.mode = _CHOOSEPILE
             self.cardpointer = 0
