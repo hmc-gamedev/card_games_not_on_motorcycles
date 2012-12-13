@@ -91,7 +91,7 @@ class SpiderGen:
     def validMove(self, destCol, col, card):
         """ checks if something is a valid move, currently cannot figure out suits... """
         # columns out of bounds
-        if destCol < 0 or destCol > 9 or col < 0 or col > 9 or destCol == col:
+        if destCol < 0 or destCol > 9 or col < 0 or col > 9 or destCol == col or len(self.board[col]) < 1:
             return False
 
 
