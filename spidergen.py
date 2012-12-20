@@ -112,7 +112,7 @@ class SpiderGen:
                 return False
         return False
 
-    def move(self, dest, col, card):
+    def move(self, dest, col, card, undo=True):
         """assumes move is valid"""
         mL = []
         while self.board[col][-1][0] != card and len(self.board[col]) > 0:
@@ -129,7 +129,8 @@ class SpiderGen:
             flipped = self.board[col][-1][2]
             self.board[col][-1][2] = True
         self.moves += 1
-        self.undo.append( (_MOVE, dest, col, card, flipped ) )
+        if undo:
+            self.undo.append( (_MOVE, dest, col, card, flipped ) )
 
     def undo_last(self):
         if len(self.undo) > 0:
@@ -139,8 +140,8 @@ class SpiderGen:
                 self.undo = self.undo[:-1]
                 if not m[4]:
                     self.board[m[2]][-1][2] = False
-                self.move(m[2], m[1], m[3])
-                self.undo = self.undo[:-1]
+                self.move(m[2], m[1], m[3], False)
+                #self.undo = self.undo[:-1]
                     
             elif self.undo[-1][0] == _DEAL:
                 m = self.undo[-1]
@@ -164,22 +165,22 @@ class SpiderGen:
         
     def checkComplete(self, col):
         """ checks if the column has a segment from 1 to 13 on top"""
-        if self.board[col][-1][0] == 1:
-            for i in xrange(len(self.board[col])-2, -1, -1):
-                if self.board[col][i][0]-1 != self.board[col][i+1][0]:
-                    break
-                if self.board[col][i][0] == 13 and i > 0:
-                    l = self.board[col][i:]
-                    self.undo.append( (_CLEAR, col, l) )
-                    self.board[col] = self.board[col][:i]
-                    self.board[col][-1][2] = True
-                    self.complete_suits += 1
-                    break
-                if self.board[col][i][0] == 13 and i == 0:
-                    self.undo.append( (_CLEAR, col, self.board[col]) )
-                    self.board[col] = []
-                    self.complete_suits += 1
-                    break
+        if len(self.board[col]) > 0:
+            if self.board[col][-1][0] == 1:
+                for i in xrange(len(self.board[col])-2, -1, -1):
+                    if self.board[col][i][0]-1 != self.board[col][i+1][0]:
+                        break
+                    if self.board[col][i][0] == 13 and i > 0:
+                        self.undo.append( (_CLEAR, col, self.board[col][i:]) )
+                        self.board[col] = self.board[col][:i]
+                        self.board[col][-1][2] = True
+                        self.complete_suits += 1
+                        break
+                    if self.board[col][i][0] == 13 and i == 0:
+                        self.undo.append( (_CLEAR, col, self.board[col][0:]) )
+                        self.board[col] = []
+                        self.complete_suits += 1
+                        break
         
     def deal(self):
         """ puts cards onto the board """
@@ -188,6 +189,8 @@ class SpiderGen:
                 self.board[i].append(self.piles[0][i])
             self.undo.append( (_DEAL, self.piles[0]) )
             self.piles = self.piles[1:]
+            for i in xrange(10):
+                self.checkComplete(i)
 
     def won(self):
         """ checks if there are no cards left on board """
