@@ -1,6 +1,13 @@
 import curses
-from spiderkeygen import SpiderKeyGen
-from minesweeperkey import MineBoardKey as mswp
+from games.spiderkeygen import SpiderKeyGen
+from games.minesweeperkey import MineBoardKey as mswp
+
+## menu.py
+## creates a listing of all games that you can play
+## add new games by:
+##    - importing the file at the top
+##    - adding it as an entry within initEntries()
+##
 
 class Menu():
 
